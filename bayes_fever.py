@@ -1,5 +1,5 @@
 import random
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 
 
 class BooleanVariableNode(object):
@@ -121,7 +121,38 @@ class RejectionSampler(SimpleSampler):
         # 
         # fill in the function body here
         #
-        return 0.0
+        samples = self.generate_samples(num_samples)
+
+        # Second, we need to create a dictionary of probabilities
+        probs_dict = query_vals.copy()
+        for i in probs_dict:
+            probs_dict[i] = 0
+
+        tracker = 0
+        for i in samples:
+            matches = False
+            for j in evidence_vals:
+                if i[j] != evidence_vals[j]:
+                    matches = True
+                    break
+            if matches is True:
+                continue
+
+
+            tracker += 1
+            for k in query_vals:
+                if query_vals[k] == i[k]:
+                    probs_dict[k] = probs_dict[k] + 1
+
+        emp_prob = 1
+        for i in probs_dict:
+            if probs_dict[i] == 0:
+                return 0
+            else:
+                probs_dict[i] = probs_dict[i] / tracker
+                emp_prob *= probs_dict[i]
+        return emp_prob
+
 
 
 class LikelihoodWeightingSampler(SimpleSampler):
@@ -167,8 +198,36 @@ class LikelihoodWeightingSampler(SimpleSampler):
         # 
         # fill in the function body here
         #
-        return 0.0
 
+
+        samples = self.generate_samples(num_samples, evidence_vals)
+
+
+        q_weight = 0 # weight of query
+        tot_weight = 0 #total weight
+
+        for i in samples:
+            matches = False
+
+            for j in query_vals:
+                if query_vals[j] != i[0][j]:
+                    matches = False
+                    break
+
+                matches = True
+
+            if matches is True:
+                q_weight += i[1]
+
+            tot_weight += i[1]
+
+        if q_weight == 0 or tot_weight == 0:
+            return 0.0
+        else:
+            emp_prob = q_weight / tot_weight
+
+
+        return emp_prob
 
 def bayes_sample_size_plot(sampler1, sampler2, query, evidence, label1, label2, title, fname):
     """Create a plot comparing approximate value of a conditional probability for two samplers.
