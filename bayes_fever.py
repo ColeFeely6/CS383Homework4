@@ -72,7 +72,28 @@ class SimpleSampler(object):
         # 
         # fill in the function body here
         #
-        return 0.0
+
+        # First grab samples
+        samples = self.generate_samples(num_samples)
+
+        # Second, we need to create a dictionary of probabilities
+        probs_dict = query_vals.copy()
+        for i in probs_dict:
+            probs_dict[i] = 0
+
+        # Third, we need to make sure that the sample is the same as the query_val
+        for i in samples:
+            for j in query_vals:
+                if i[j] == query_vals[j]:
+                    probs_dict[j] = probs_dict[j] + 1
+
+        # Finally, find the empirical probability
+        emp_prob = 1
+        for i in probs_dict:
+            probs_dict[i] = probs_dict[i]/num_samples
+            emp_prob = emp_prob * probs_dict[i]
+
+        return emp_prob
 
         
 class RejectionSampler(SimpleSampler):
