@@ -245,7 +245,27 @@ def bayes_sample_size_plot(sampler1, sampler2, query, evidence, label1, label2, 
     # 
     # fill in the function body here
     #
-    return
+    #   bayes_sample_size_plot(sampler_reject, sampler_like,
+    #                       {'E': True}, {'A': True, 'T': True},
+    #                       "rejection", "likelihood weighting", "P(e | a, t) vs n",
+    #                       "bayes_fever.pdf")
+
+    #------- Givens besides function arguments ------
+    N = 1000 # number of intervals
+    dN = 100 # the step
+
+    x_axis = list(range(0, N+1, dN)) # set up x-axis for plotting
+    rej = [] # new list for probs of rejection samples
+    like = [] # new list for probs of likelihood
+
+    for i in range(0, N+1, dN):
+        prob_rej = sampler1.get_prob(query, evidence, i)
+        rej.append(prob_rej)
+
+        prob_like = sampler2.get_prob(query, evidence, i)
+        like.append(prob_like)
+
+    two_line_plot(x_axis, rej, "Rejection Method", x_axis, like, "Likelihood Method", "P(E | A,T)", "./bayes_fever.pdf")
 
 
 def two_line_plot(xvals1, yvals1, label1, xvals2, yvals2, label2, title, outfile_path):
