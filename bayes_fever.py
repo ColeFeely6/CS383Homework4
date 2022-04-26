@@ -62,24 +62,25 @@ class SimpleSampler(object):
     
     def get_prob(self, query_vals, num_samples):
 
-        prob = query_vals.copy()
-        for var in prob:
-            prob[var] = 0
 
-        # generate samples
+        # First grab samples
         samples = self.generate_samples(num_samples)
 
-        # check if sample var is the same as the query var
-        for sample_dict in samples:
-            for var in query_vals:
-                if sample_dict[var] == query_vals[var]:
-                    prob[var] += 1
+        # Second, we need to create a dictionary of probabilities
+        probs_dict = query_vals.copy()
+        for i in probs_dict: probs_dict[i] = 0
 
-        # calculate empirical probability from the sampling
+        # Third, we need to make sure that the sample is the same as the query_val
+        for i in samples:
+            for j in query_vals:
+                if i[j] == query_vals[j]:
+                    probs_dict[j] += 1
+
+        # Finally, find the empirical probability
         emp_prob = 1
-        for var in prob:
-            prob[var] = prob[var] / num_samples
-            emp_prob *= prob[var]
+        for i in probs_dict:
+            probs_dict[i] = probs_dict[i]/num_samples
+            emp_prob *= probs_dict[i]
 
         return emp_prob
 
@@ -109,39 +110,38 @@ class RejectionSampler(SimpleSampler):
         # 
         # fill in the function body here
         #
-        prob = query_vals.copy()
-        for var in prob:
-            prob[var] = 0
+        samples = self.generate_samples(num_samples)
 
-        # generate samples
-        sample_vals = self.generate_samples(num_samples)
+        # Second, we need to create a dictionary of probabilities
+        probs_dict = query_vals.copy()
+        for i in probs_dict: probs_dict[i] = 0
 
-        # instantiate count for empirical calculation
-        count = 0
-        for sample in sample_vals:
-            # check if sample var matches evidence variable, else reject sample
-            skip = False
-            for var in evidence_vals:
-                if sample[var] != evidence_vals[var]:
-                    skip = True
+
+        tracker = 0
+        for i in samples:
+            matches = False
+            for j in evidence_vals:
+                if i[j] != evidence_vals[j]:
+                    matches = True
                     break
-            if skip is True:
+            if matches is True:
                 continue
 
-            # increment count for accepted sample
-            count += 1
-            for var in query_vals:
-                if query_vals[var] == sample[var]:
-                    prob[var] += 1
+
+            tracker += 1
+            for k in query_vals:
+                if i[k] == query_vals[k]:
+                    probs_dict[k] = probs_dict[k] + 1
 
         emp_prob = 1
-        for var in prob:
-            try:
-                prob[var] = prob[var] / count
-                emp_prob *= prob[var]
-            except ZeroDivisionError:
+        for i in probs_dict:
+            if probs_dict[i] == 0:
                 return 0
+            else:
+                probs_dict[i] = probs_dict[i] / tracker
+                emp_prob = emp_prob * probs_dict[i]
         return emp_prob
+
 
 
 class LikelihoodWeightingSampler(SimpleSampler):
