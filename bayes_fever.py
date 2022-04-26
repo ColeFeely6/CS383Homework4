@@ -1,5 +1,5 @@
 import random
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 
 
 class BooleanVariableNode(object):
@@ -61,37 +61,25 @@ class SimpleSampler(object):
         return [ self.generate_sample() for x in range(n) ]
     
     def get_prob(self, query_vals, num_samples):
-        """Return the (joint) probability of the query variables.
-        
-        Args:
-            query_vals: dictionary mapping { variable => value }
-            num_samples: number of simple samples to generate for the calculation
 
-        Returns: empirical probability of query values
-        """
-        # 
-        # fill in the function body here
-        #
+        prob = query_vals.copy()
+        for var in prob:
+            prob[var] = 0
 
-        # First grab samples
+        # generate samples
         samples = self.generate_samples(num_samples)
 
-        # Second, we need to create a dictionary of probabilities
-        probs_dict = query_vals.copy()
-        for i in probs_dict:
-            probs_dict[i] = 0
+        # check if sample var is the same as the query var
+        for sample_dict in samples:
+            for var in query_vals:
+                if sample_dict[var] == query_vals[var]:
+                    prob[var] += 1
 
-        # Third, we need to make sure that the sample is the same as the query_val
-        for i in samples:
-            for j in query_vals:
-                if i[j] == query_vals[j]:
-                    probs_dict[j] = probs_dict[j] + 1
-
-        # Finally, find the empirical probability
+        # calculate empirical probability from the sampling
         emp_prob = 1
-        for i in probs_dict:
-            probs_dict[i] = probs_dict[i]/num_samples
-            emp_prob = emp_prob * probs_dict[i]
+        for var in prob:
+            prob[var] = prob[var] / num_samples
+            emp_prob *= prob[var]
 
         return emp_prob
 
@@ -121,38 +109,39 @@ class RejectionSampler(SimpleSampler):
         # 
         # fill in the function body here
         #
-        samples = self.generate_samples(num_samples)
+        prob = query_vals.copy()
+        for var in prob:
+            prob[var] = 0
 
-        # Second, we need to create a dictionary of probabilities
-        probs_dict = query_vals.copy()
-        for i in probs_dict:
-            probs_dict[i] = 0
+        # generate samples
+        sample_vals = self.generate_samples(num_samples)
 
-        tracker = 0
-        for i in samples:
-            matches = False
-            for j in evidence_vals:
-                if i[j] != evidence_vals[j]:
-                    matches = True
+        # instantiate count for empirical calculation
+        count = 0
+        for sample in sample_vals:
+            # check if sample var matches evidence variable, else reject sample
+            skip = False
+            for var in evidence_vals:
+                if sample[var] != evidence_vals[var]:
+                    skip = True
                     break
-            if matches is True:
+            if skip is True:
                 continue
 
-
-            tracker += 1
-            for k in query_vals:
-                if query_vals[k] == i[k]:
-                    probs_dict[k] = probs_dict[k] + 1
+            # increment count for accepted sample
+            count += 1
+            for var in query_vals:
+                if query_vals[var] == sample[var]:
+                    prob[var] += 1
 
         emp_prob = 1
-        for i in probs_dict:
-            if probs_dict[i] == 0:
+        for var in prob:
+            try:
+                prob[var] = prob[var] / count
+                emp_prob *= prob[var]
+            except ZeroDivisionError:
                 return 0
-            else:
-                probs_dict[i] = probs_dict[i] / tracker
-                emp_prob *= probs_dict[i]
         return emp_prob
-
 
 
 class LikelihoodWeightingSampler(SimpleSampler):
@@ -216,8 +205,7 @@ class LikelihoodWeightingSampler(SimpleSampler):
 
                 matches = True
 
-            if matches is True:
-                q_weight += i[1]
+            if matches is True: q_weight += i[1]
 
             tot_weight += i[1]
 
