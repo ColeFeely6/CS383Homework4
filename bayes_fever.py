@@ -131,13 +131,12 @@ class RejectionSampler(SimpleSampler):
                 if sample[value] != evidence_vals[value]:  # If the evidence isn't true, reject
                     ignore = True
                     break
-            if ignore is True:
-                continue
-            for variable in query_vals:
-                if sample[variable] == query_vals[variable]: # is true for everything in query_vals
-                    tracker += 1
-                if tracker == len(query_vals):
-                    return_counter += 1
+            if ignore == False:
+                for variable in query_vals:
+                    if sample[variable] == query_vals[variable]: # is true for everything in query_vals
+                        tracker += 1
+                    if tracker == len(query_vals):
+                        return_counter += 1
 
         return return_counter/num_samples
 
