@@ -130,7 +130,7 @@ class RejectionSampler(SimpleSampler):
                 if tracker == len(query_vals):
                     return_counter += 1
 
-        return return_counter/num_samples
+        return return_counter/len(samples)
 
 
 class LikelihoodWeightingSampler(SimpleSampler):
@@ -290,7 +290,7 @@ if __name__ == '__main__':
         ("d. P(awesome, test)", {'A': True, 'T': True}, {}),
         ("f. P(enrolled | awesome)", {'E': True}, {'A': True}),
         ("g. P(enrolled | awesome, test)", {'E': True}, {'A': True, 'T': True}),
-        ("Gradescope: ", {'A': False, 'T': True}, {})
+        ("Gradescope: ", {'A': True}, {'A': True})
     ]
     for label, query, evidence in inference_probs:
         print(label)
