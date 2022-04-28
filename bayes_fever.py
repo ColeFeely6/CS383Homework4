@@ -116,12 +116,10 @@ class RejectionSampler(SimpleSampler):
         # fill in the function body here
         #
         # First grab samples
-        samples = self.generate_samples(num_samples,evidence_vals) # list of dictionaries
+        samples = self.generate_samples(num_samples, evidence_vals) # list of dictionaries
 
         # Second, we need to create a dictionary of probabilities
-        probs_dict = query_vals.copy()
         return_counter = 0
-        for i in probs_dict: probs_dict[i] = 0
 
         # Third, we need to make sure that the sample is the same as the query_val
         for sample in samples:
