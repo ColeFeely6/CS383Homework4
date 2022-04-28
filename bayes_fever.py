@@ -128,7 +128,7 @@ class RejectionSampler(SimpleSampler):
             tracker = 0
             ignore = False
             for value in evidence_vals:
-                if i[value] != evidence_vals[value]:  # If the evidence isn't true, reject
+                if sample[value] != evidence_vals[value]:  # If the evidence isn't true, reject
                     ignore = True
                     break
             if ignore is True:
