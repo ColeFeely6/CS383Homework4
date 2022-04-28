@@ -61,28 +61,40 @@ class SimpleSampler(object):
         return [ self.generate_sample() for x in range(n) ]
     
     def get_prob(self, query_vals, num_samples):
+        """Return the (joint) probability of the query variables.
 
+                Args:
+                    query_vals: dictionary mapping { variable => value }
+                    num_samples: number of simple samples to generate for the calculation
+
+                Returns: empirical probability of query values
+                """
 
         # First grab samples
-        samples = self.generate_samples(num_samples)
+        samples = self.generate_samples(num_samples) # list of dictionaries
 
         # Second, we need to create a dictionary of probabilities
         probs_dict = query_vals.copy()
+        return_counter = 0
         for i in probs_dict: probs_dict[i] = 0
 
         # Third, we need to make sure that the sample is the same as the query_val
-        for i in samples:
-            for j in query_vals:
-                if i[j] == query_vals[j]:
-                    probs_dict[j] += 1
+        for sample in samples:
+            for variable in query_vals:
+                tracker = 0
+                # if sample[var] == true and query_vals[var] == true for everything in query_vals
+                if sample[variable] == query_vals[variable]: # is true for everything in query_vals
+                    tracker += 1
+                if tracker == len(query_vals):
+                    return_counter += 1
 
-        # Finally, find the empirical probability
-        emp_prob = 1
-        for i in probs_dict:
-            probs_dict[i] = probs_dict[i]/num_samples
-            emp_prob *= probs_dict[i]
+        # # Finally, find the empirical probability
+        # emp_prob = 1
+        # for i in probs_dict:
+        #     probs_dict[i] = probs_dict[i]/num_samples
+        #     emp_prob *= probs_dict[i]
 
-        return emp_prob
+        return return_counter/num_samples
 
         
 class RejectionSampler(SimpleSampler):
@@ -119,12 +131,12 @@ class RejectionSampler(SimpleSampler):
 
         tracker = 0
         for i in samples:
-            matches = False
+            ignore = False
             for j in evidence_vals:
-                if i[j] != evidence_vals[j]:
-                    matches = True
+                if i[j] != evidence_vals[j]: # If the evidence isn't true, reject
+                    ignore = True
                     break
-            if matches is True:
+            if ignore is True:
                 continue
 
 
@@ -154,7 +166,7 @@ class LikelihoodWeightingSampler(SimpleSampler):
         sample_vals = {}  # variable => value
         weight = 1.0
 
-        while len(sample_vals) < len(self.nodes):    
+        while len(sample_vals) < len(self.nodes):
             for node in self.nodes:
                 var = node.get_var()
                 if node not in sample_vals:
@@ -197,9 +209,8 @@ class LikelihoodWeightingSampler(SimpleSampler):
 
         for i in samples:
             matches = False
-
             for j in query_vals:
-                if query_vals[j] != i[0][j]:
+                if query_vals[j] != i[0][j]: #if does not match
                     matches = False
                     break
 
