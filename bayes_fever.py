@@ -82,21 +82,10 @@ class SimpleSampler(object):
         for sample in samples:
             tracker = 0
             for variable in query_vals:
-                print("Variable: ",variable)
-                # if sample[var] == true and query_vals[var] == true for everything in query_vals
-                print("Len Query Vals", len(query_vals))
                 if sample[variable] == query_vals[variable]: # is true for everything in query_vals
                     tracker += 1
-                print("tracker", tracker)
                 if tracker == len(query_vals):
                     return_counter += 1
-                    print("increment return_couter")
-
-        # # Finally, find the empirical probability
-        # emp_prob = 1
-        # for i in probs_dict:
-        #     probs_dict[i] = probs_dict[i]/num_samples
-        #     emp_prob *= probs_dict[i]
 
         return return_counter/num_samples
 
@@ -158,6 +147,31 @@ class RejectionSampler(SimpleSampler):
                 emp_prob = emp_prob * probs_dict[i]
         return emp_prob
 
+        # First grab samples
+        samples = self.generate_samples(num_samples) # list of dictionaries
+
+        # Second, we need to create a dictionary of probabilities
+        probs_dict = query_vals.copy()
+        return_counter = 0
+        for i in probs_dict: probs_dict[i] = 0
+
+        # Third, we need to make sure that the sample is the same as the query_val
+        for sample in samples:
+            tracker = 0
+            ignore = False
+            for value in evidence_vals:
+                if i[value] != evidence_vals[value]:  # If the evidence isn't true, reject
+                    ignore = True
+                    break
+            if ignore is True:
+                continue
+            for variable in query_vals:
+                if sample[variable] == query_vals[variable]: # is true for everything in query_vals
+                    tracker += 1
+                if tracker == len(query_vals):
+                    return_counter += 1
+
+        return return_counter/num_samples
 
 
 class LikelihoodWeightingSampler(SimpleSampler):
