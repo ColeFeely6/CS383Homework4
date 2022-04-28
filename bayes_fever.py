@@ -1,7 +1,7 @@
 import random
 #from matplotlib import pyplot as plt
 
-
+random.seed(4)
 class BooleanVariableNode(object):
     """Class representing a single node in a Bayesian network.
 
@@ -80,13 +80,17 @@ class SimpleSampler(object):
 
         # Third, we need to make sure that the sample is the same as the query_val
         for sample in samples:
+            tracker = 0
             for variable in query_vals:
-                tracker = 0
+                print("Variable: ",variable)
                 # if sample[var] == true and query_vals[var] == true for everything in query_vals
+                print("Len Query Vals", len(query_vals))
                 if sample[variable] == query_vals[variable]: # is true for everything in query_vals
                     tracker += 1
+                print("tracker", tracker)
                 if tracker == len(query_vals):
                     return_counter += 1
+                    print("increment return_couter")
 
         # # Finally, find the empirical probability
         # emp_prob = 1
@@ -312,7 +316,8 @@ if __name__ == '__main__':
         ("c. P(awesome)", {'A': True}, {}),
         ("d. P(awesome, test)", {'A': True, 'T': True}, {}),
         ("f. P(enrolled | awesome)", {'E': True}, {'A': True}),
-        ("g. P(enrolled | awesome, test)", {'E': True}, {'A': True, 'T': True}),    
+        ("g. P(enrolled | awesome, test)", {'E': True}, {'A': True, 'T': True}),
+        ("Gradescope: ", {'A': False, 'T': True}, {})
     ]
     for label, query, evidence in inference_probs:
         print(label)
@@ -323,7 +328,7 @@ if __name__ == '__main__':
         print("")
 
     # plot some approximate probabilities as a function of the number of samples
-    bayes_sample_size_plot(sampler_reject, sampler_like, 
-                           {'E': True}, {'A': True, 'T': True}, 
-                           "rejection", "likelihood weighting", "P(e | a, t) vs n", 
-                           "bayes_fever.pdf")
+    # bayes_sample_size_plot(sampler_reject, sampler_like,
+    #                        {'E': True}, {'A': True, 'T': True},
+    #                        "rejection", "likelihood weighting", "P(e | a, t) vs n",
+    #                        "bayes_fever.pdf")
